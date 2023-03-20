@@ -76,48 +76,6 @@ Resources:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [1, Fn::GetAZs: !Ref "AWS::Region"]
       CidrBlock: "10.0.144.0/20"
-
-  # NatGateway
-  # create NatGateway for PrivateSubnet to connect Internet.
-  NatGatewayEIPA: 
-    Type: "AWS::EC2::EIP"
-    Properties: 
-      Domain: vpc
-      Tags: 
-        - Key: Name
-          Value: !Sub
-            - "handson-${UserNamePrefix}-eip-${AZ}"
-            - AZ: !Select [0, Fn::GetAZs: !Ref "AWS::Region"]
-  NatGatewayA: 
-    Type: "AWS::EC2::NatGateway"
-    Properties:
-      AllocationId: !GetAtt NatGatewayEIPA.AllocationId 
-      Tags: 
-        - Key: Name
-          Value: !Sub
-            - "handson-${UserNamePrefix}-nat-public1-${AZ}"
-            - AZ: !Select [0, Fn::GetAZs: !Ref "AWS::Region"]
-      SubnetId: !Ref PublicSubnetA
-  NatGatewayEIPB: 
-    Type: "AWS::EC2::EIP"
-    Properties: 
-      Domain: vpc
-      Tags: 
-        - Key: Name
-          Value: !Sub
-            - "handson-${UserNamePrefix}-eip-${AZ}"
-            - AZ: !Select [1, Fn::GetAZs: !Ref "AWS::Region"]
-  NatGatewayB: 
-    Type: "AWS::EC2::NatGateway"
-    Properties:
-      AllocationId: !GetAtt NatGatewayEIPB.AllocationId 
-      Tags: 
-        - Key: Name
-          Value: !Sub
-            - "handson-${UserNamePrefix}-nat-public2-${AZ}"
-            - AZ: !Select [1, Fn::GetAZs: !Ref "AWS::Region"]
-      SubnetId: !Ref PublicSubnetB
-
   # Route Table(Public)
   RouteTableForPublicSubnet:
     Type: AWS::EC2::RouteTable
@@ -158,7 +116,7 @@ Resources:
     Properties:
       RouteTableId: !Ref RouteTableForPrivateSubnetA
       DestinationCidrBlock: "0.0.0.0/0"
-      NatGatewayId: !Ref NatGatewayA
+      GatewayId: !Ref InternetGateway
   AssocciateRouteTableForPrivateSubnetA:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
@@ -178,7 +136,7 @@ Resources:
     Properties:
       RouteTableId: !Ref RouteTableForPrivateSubnetB
       DestinationCidrBlock: "0.0.0.0/0"
-      NatGatewayId: !Ref NatGatewayB
+      GatewayId: !Ref InternetGateway
   AssocciateRouteTableForPrivateSubnetB:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
